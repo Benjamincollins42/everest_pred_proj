@@ -117,16 +117,23 @@ route_possible = df['route1'].unique()
 
 # hot oneing categorical data
 
-cat_cols = ['mseason', 'sex', 'citizen', 'status', 'termreason', 'nation']
+cat_cols = ['mseason', 'sex', 'citizen', 'status', 'termreason', 'nation', 'route1']
 
 OH_encoder = OneHotEncoder(handle_unknown='ignore', sparse=False)
 OH_cols = pd.DataFrame(OH_encoder.fit_transform(df[cat_cols]))
 OH_cols.index = df.index
 num_data = df.drop(cat_cols, axis=1)
-df1 = pd.concat([num_data, OH_cols], axis=1)
+df_hot_oned = pd.concat([num_data, OH_cols], axis=1)
 
 df = df.drop(['fname', 'lname', 'status', 'occupation', 'route2', 'route3',
               'route4', 'sponsor', 'termreason', 'expdid'],
              axis=1)
 
 df.to_csv('../data/processed_data.csv')
+
+df_hot_oned = df_hot_oned.drop(['fname', 'lname', 'occupation', 'route2', 'route3',
+              'route4', 'sponsor', 'expdid'],
+             axis=1)
+
+df_hot_oned.to_csv('../data/fully_processed_data.csv')
+
