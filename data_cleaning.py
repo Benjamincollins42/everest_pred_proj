@@ -38,7 +38,6 @@ leaders_only = df[df.index.isin(leaders_only)]
 
 # climber nation = expedition nation feature
 
-
 def citizen_is_nation(row):
     citizenships = row.citizen.split('/')
     if row.nation == row.citizen:
@@ -58,17 +57,24 @@ df['hired_ratio'] = df.apply(lambda x: x.tothired / x.totmembers, axis=1)
 
 # climber nation = expedition leaders nation feature
 
-"""
+test_leader = leaders_only[leaders_only['expdid'] == 'EVER88401']
+
 def climber_leader_citizen(row):
     citizenships = row.citizen.split('/')
-    leaders_only[row.expdid].citizen
-    if row.nation == row.citizen:
-        return 1
-    elif row.nation in citizenships:
-        return 1
-    else:
-        return 0
-"""
+    leader = (leaders_only[leaders_only['expdid'] == row.expdid])
+    if leader.empty:
+        return row.citizen_is_nation
+    # they tend to be all the same nation bar hired so no nationality conflict
+    leader_citizenships = str(leader.citizen.iloc[0]).split('/')
+    
+    for citizen in citizenships:
+        for l_citizen in leader_citizenships:
+            if citizen == l_citizen:
+                return 1
+    return 0
+
+
+df['same_nat_as_leader'] = df.apply(climber_leader_citizen, axis='columns')
 
 # percentage team is same nation feature sans hired
 
@@ -103,10 +109,19 @@ basecamp_only = index[cond_basecamp_only]
 df = df.drop(basecamp_only, axis=0)
 df = df.drop(['bconly'], axis=1)
 
+# adding non standard routes in
+
 index = df.index
 cond_standard = df['stdrte'] == 0
 standard_only = index[cond_standard]
-df = df.drop(standard_only, axis=0)
+
+def non_standard_map(row):
+    if row.stdrte == 0:
+        return 'non standard route'
+    else:
+        return row.route1
+
+df['route1'] = df.apply(non_standard_map, axis='columns')
 df = df.drop(['stdrte', 'comrte'], axis=1)
 
 df = df[df['route1'].notna()]
@@ -117,7 +132,8 @@ route_possible = df['route1'].unique()
 
 # hot oneing categorical data
 
-cat_cols = ['mseason', 'sex', 'citizen', 'status', 'termreason', 'nation', 'route1']
+cat_cols = ['mseason', 'sex', 'citizen', 'status', 'termreason', 'nation',
+            'route1']
 
 OH_encoder = OneHotEncoder(handle_unknown='ignore', sparse=False)
 OH_cols = pd.DataFrame(OH_encoder.fit_transform(df[cat_cols]))
@@ -131,9 +147,9 @@ df = df.drop(['fname', 'lname', 'status', 'occupation', 'route2', 'route3',
 
 df.to_csv('../data/processed_data.csv')
 
-df_hot_oned = df_hot_oned.drop(['fname', 'lname', 'occupation', 'route2', 'route3',
-              'route4', 'sponsor', 'expdid'],
-             axis=1)
+df_hot_oned = df_hot_oned.drop(['fname', 'lname', 'occupation', 'route2',
+                                'route3', 'route4', 'sponsor', 'expdid'],
+                               axis=1)
 
 df_hot_oned.to_csv('../data/fully_processed_data.csv')
 
