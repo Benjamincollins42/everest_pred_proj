@@ -57,8 +57,6 @@ df['hired_ratio'] = df.apply(lambda x: x.tothired / x.totmembers, axis=1)
 
 # climber nation = expedition leaders nation feature
 
-test_leader = leaders_only[leaders_only['expdid'] == 'EVER88401']
-
 def climber_leader_citizen(row):
     citizenships = row.citizen.split('/')
     leader = (leaders_only[leaders_only['expdid'] == row.expdid])
@@ -153,3 +151,10 @@ df_hot_oned = df_hot_oned.drop(['fname', 'lname', 'occupation', 'route2',
 
 df_hot_oned.to_csv('../data/fully_processed_data.csv')
 
+# modern age of climbing data only
+
+df_hot_oned = df_hot_oned.drop(df.index[df.myear < 1990], axis = 0)
+
+df_hot_oned = df_hot_oned.drop(['myear', 'hcn'], axis = 1)
+
+df_hot_oned.to_csv('../data/modern_no_year.csv')
