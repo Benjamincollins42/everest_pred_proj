@@ -6,6 +6,7 @@ Created on Mon May 17 13:58:59 2021
 """
 
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 
 df = pd.read_csv('../data/all_everest_and_members.csv')
@@ -74,6 +75,27 @@ def climber_leader_citizen(row):
 
 df['same_nat_as_leader'] = df.apply(climber_leader_citizen, axis='columns')
 
+# previously topped
+
+def summited_or_attempted_before(row):
+    # probably a more efficent way somewhere
+    vec_df = np.array([df['myear'],df['fname'],df['lname'],df['msuccess']])
+    cond_1 = np.less.outer(vec_df[0], row.myear)
+    cond_2 = np.equal.outer(vec_df[2], row.lname)
+    cond_3 = np.equal.outer(vec_df[1], row.fname)
+    cond_4 = np.equal.outer(vec_df[3], 1)
+    test1 = np.logical_and(np.logical_and(cond_1,cond_2),cond_3)
+    test2 = np.logical_and(test1, cond_4)
+    if any(test2):
+        return [1, 1]
+    elif any(test1):
+        return [0, 1]
+    else:
+        return [0, 0]
+    
+df[['prev_summit','prev_attempt']] = df.apply(summited_or_attempted_before,
+                                              axis=1, result_type='expand')
+    
 # percentage team is same nation feature sans hired
 
 # occupations into categories
@@ -81,6 +103,7 @@ df['same_nat_as_leader'] = df.apply(climber_leader_citizen, axis='columns')
 # dealing with claimed and disputed
 
 # season is 1 spring, 2 summer ...
+
 # sorting false and true into 1 and 0
 
 # dropping unnessicary information
@@ -99,6 +122,7 @@ index = df.index
 cond_not_to_basecamp = df['nottobc'] == True
 not_to_basecamp = index[cond_not_to_basecamp]
 df = df.drop(not_to_basecamp, axis=0)
+
 df = df.drop(['nottobc'], axis=1)
 
 index = df.index
@@ -125,6 +149,10 @@ df = df.drop(['stdrte', 'comrte'], axis=1)
 df = df[df['route1'].notna()]
 df['route1'] = df.apply(lambda x: x.route1.lower().split(' (')[0], axis=1)
 df['route1'] = df.apply(lambda x: x.route1.replace('/', '-'), axis=1)
+
+# swaping host to binary
+
+df['host'] = df.apply(lambda x: (x.host - 1), axis=1)
 
 route_possible = df['route1'].unique()
 
