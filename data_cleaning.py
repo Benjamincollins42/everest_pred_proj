@@ -10,7 +10,7 @@ import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 
 df = pd.read_csv('../data/all_everest_and_members.csv')
-
+print(df.shape)
 # data checks
 
 status_possible = df['status'].unique()  # about 200 needs to be defined better
@@ -108,7 +108,7 @@ df[['prev_summit','prev_attempt']] = df.apply(summited_or_attempted_before,
 
 # dropping unnessicary information
 
-df = df.drop(['membid', 'peakid', 'age', 'birthdate', 'bcdate',
+df = df.drop(['membid', 'peakid', 'age', 'bcdate',
               'yob', 'residence', 'mhighpt', 'mperhighpt', 'msmtdate1',
               'msmtdate2', 'msmtdate3', 'msmttime1', 'msmttime2', 'msmttime3',
               'mroute1', 'mroute2', 'mroute3', 'mascent1', 'mascent2',
@@ -131,6 +131,7 @@ basecamp_only = index[cond_basecamp_only]
 df = df.drop(basecamp_only, axis=0)
 df = df.drop(['bconly'], axis=1)
 
+print(df.shape)
 # adding non standard routes in
 
 index = df.index
@@ -178,11 +179,3 @@ df_hot_oned = df_hot_oned.drop(['fname', 'lname', 'occupation', 'route2',
                                axis=1)
 
 df_hot_oned.to_csv('../data/fully_processed_data.csv')
-
-# modern age of climbing data only
-
-df_hot_oned = df_hot_oned.drop(df.index[df.myear < 1990], axis = 0)
-
-df_hot_oned = df_hot_oned.drop(['myear', 'hcn'], axis = 1)
-
-df_hot_oned.to_csv('../data/modern_no_year.csv')
